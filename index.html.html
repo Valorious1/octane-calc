@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Octane ROI Calculator</title>
+<style>
+:root {
+  --bg:#f0f4f8;--card:#fff;--border:#e2e8f0;--text:#1a202c;--muted:#718096;
+  --primary:#2563eb;--success:#16a34a;--success-bg:#dcfce7;
+  --danger:#dc2626;--danger-bg:#fee2e2;--warn:#d97706;--warn-bg:#fef3c7;
+  --input-bg:#f8fafc;--tab-off:#e2e8f0;--shadow:0 4px 20px rgba(0,0,0,.1);
+}
+[data-theme="dark"] {
+  --bg:#0f172a;--card:#1e293b;--border:#334155;--text:#f1f5f9;--muted:#94a3b8;
+  --primary:#3b82f6;--success:#4ade80;--success-bg:#14532d;
+  --danger:#f87171;--danger-bg:#7f1d1d;--warn:#fbbf24;--warn-bg:#78350f;
+  --input-bg:#0f172a;--tab-off:#334155;--shadow:0 4px 20px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px;transition:background .3s,color .3s}
+.wrap{max-width:560px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+header h1{font-size:1.35rem;font-weight:800}
+header p{font-size:.78rem;color:var(--muted);margin-top:2px}
+.theme-btn{background:var(--card);border:1.5px solid var(--border);border-radius:50px;padding:7px 16px;cursor:pointer;font-size:.85rem;color:var(--text);transition:all .2s}
+.card{background:var(--card);border-radius:16px;padding:22px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:14px}
+.tabs{display:flex;gap:8px;margin-bottom:20px}
+.tab-btn{flex:1;padding:10px;border:none;border-radius:10px;font-size:.83rem;font-weight:700;cursor:pointer;transition:all .2s;background:var(--tab-off);color:var(--muted)}
+.tab-btn.active{background:var(--primary);color:#fff}
+.tab-pane{display:none}.tab-pane.active{display:block}
+.sec-lbl{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--border)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.ig{display:flex;flex-direction:column;gap:4px}
+.ig.full{grid-column:1/-1}
+label{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.iw{display:flex;align-items:center;background:var(--input-bg);border:1.5px solid var(--border);border-radius:8px;overflow:hidden;transition:border-color .2s}
+.iw:focus-within{border-color:var(--primary)}
+.pre,.suf{padding:10px 9px;font-size:.88rem;color:var(--muted);background:var(--border);font-weight:700;white-space:nowrap}
+input[type=number]{flex:1;padding:10px;border:none;background:transparent;font-size:1rem;color:var(--text);outline:none;width:100%}
+input[type=number]::-webkit-inner-spin-button{opacity:.4}
+.note{font-size:.76rem;color:var(--muted);padding:7px 10px;background:var(--input-bg);border-radius:6px;border-left:3px solid var(--primary);margin-top:6px}
+.res-card{background:var(--card);border-radius:16px;padding:22px;box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:14px}
+.res-title{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:14px}
+.rrow{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:.88rem}
+.rrow:last-child{border-bottom:none}
+.rlbl{color:var(--muted)}
+.rval{font-weight:800;font-size:.98rem}
+.chart-wrap{margin-top:18px}
+.ct{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px}
+.brow{margin-bottom:10px}
+.blr{display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:4px}
+.blbl{font-weight:700}
+.bamt{font-weight:800;color:var(--primary)}
+.btrack{background:var(--border);border-radius:10px;height:22px;overflow:hidden}
+.bfill{height:100%;border-radius:10px;transition:width .55s ease}
+.bfill.p93{background:linear-gradient(90deg,#2563eb,#60a5fa)}
+.bfill.p91{background:linear-gradient(90deg,#16a34a,#4ade80)}
+.bfill.boost{background:linear-gradient(90deg,#d97706,#fbbf24)}
+.gold{margin-top:16px;padding:14px 18px;background:linear-gradient(135deg,#fef9c3,#fde68a);border:2px solid #f59e0b;border-radius:12px}
+[data-theme=dark] .gold{background:linear-gradient(135deg,#78350f,#92400e)}
+.gold-t{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#92400e;margin-bottom:3px}
+[data-theme=dark] .gold-t{color:#fbbf24}
+.gold-v{font-size:1.45rem;font-weight:900;color:#92400e}
+[data-theme=dark] .gold-v{color:#fbbf24}
+.gold-d{font-size:.78rem;color:#92400e;margin-top:2px}
+[data-theme=dark] .gold-d{color:#fcd34d}
+.warnbox{margin-top:14px;padding:14px 18px;background:var(--warn-bg);border:2px solid var(--warn);border-radius:12px}
+.warnbox-t{font-size:.8rem;font-weight:800;color:var(--warn);margin-bottom:4px}
+.warnbox-d{font-size:.78rem;color:var(--muted)}
+.verdict{margin-top:18px;padding:16px 20px;border-radius:12px;text-align:center}
+.verdict.v-mid{background:var(--success-bg);border:2px solid var(--success)}
+.verdict.v-prem{background:var(--danger-bg);border:2px solid var(--danger)}
+.verdict.v-tie{background:var(--warn-bg);border:2px solid var(--warn)}
+.v-icon{font-size:1.9rem;margin-bottom:5px}
+.v-txt{font-weight:800;font-size:1.05rem}
+.v-sub{font-size:.82rem;margin-top:4px;opacity:.88}
+footer{text-align:center;font-size:.72rem;color:var(--muted);margin-top:6px;padding-bottom:20px}
+@media(max-width:400px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>⛽ Octane ROI Calculator</h1>
+      <p>Is premium actually worth it at your pump?</p>
+    </div>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">🌙 Dark</button>
+  </header>
+
+  <div class="card">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('pump',this)">🔵 Pump vs Pump</button>
+      <button class="tab-btn" onclick="switchTab('boost',this)">🧪 Booster Route</button>
+    </div>
+
+    <div id="tab-pump" class="tab-pane active">
+      <div class="sec-lbl">⛽ Fuel Prices</div>
+      <div class="grid">
+        <div class="ig"><label>Premium (93) / gal</label>
+          <div class="iw"><span class="pre">$</span><input type="number" id="p93" step="0.01" value="4.41" oninput="calc()"></div></div>
+        <div class="ig"><label>Midgrade (91) / gal</label>
+          <div class="iw"><span class="pre">$</span><input type="number" id="p91" step="0.01" value="4.01" oninput="calc()"></div></div>
+      </div>
+      <div class="sec-lbl" style="margin-top:14px">🚗 Your Vehicle</div>
+      <div class="grid">
+        <div class="ig"><label>Tank Size</label>
+          <div class="iw"><input type="number" id="tank" step="0.5" value="17" oninput="calc()"><span class="suf">gal</span></div></div>
+        <div class="ig"><label>Miles / Year</label>
+          <div class="iw"><input type="number" id="miles" step="500" value="12000" oninput="calc()"></div></div>
+        <div class="ig"><label>MPG on Premium</label>
+          <div class="iw"><input type="number" id="mpg93" step="0.5" value="20" oninput="calc()"><span class="suf">mpg</span></div></div>
+        <div class="ig"><label>MPG on Midgrade</label>
+          <div class="iw"><input type="number" id="mpg91" step="0.5" value="19" oninput="calc()"><span class="suf">mpg</span></div></div>
+      </div>
+    </div>
+
+    <div id="tab-boost" class="tab-pane">
+      <div class="sec-lbl">⛽ Fuel Prices</div>
+      <div class="grid">
+        <div class="ig"><label>Straight Premium / gal</label>
+          <div class="iw"><span class="pre">$</span><input type="number" id="bp93" step="0.01" value="4.41" oninput="calcBoost()"></div></div>
+        <div class="ig"><label>Base Fuel (91) / gal</label>
+          <div class="iw"><span class="pre">$</span><input type="number" id="bp91" step="0.01" value="4.01" oninput="calcBoost()"></div></div>
+      </div>
+      <div class="sec-lbl" style="margin-top:14px">🧪 Booster Details</div>
+      <div class="grid">
+        <div class="ig"><label>Bottle Cost</label>
+          <div class="iw"><span class="pre">$</span><input type="number" id="bCost" step="0.01" value="25.99" oninput="calcBoost()"></div></div>
+        <div class="ig"><label>Bottle Size</label>
+          <div class="iw"><input type="number" id="bOz" step="1" value="32" oninput="calcBoost()"><span class="suf">oz</span></div></div>
+        <div class="ig"><label>Oz Needed / Tank</label>
+          <div class="iw"><input type="number" id="bOzTank" step="0.5" value="13.6" oninput="calcBoost()"><span class="suf">oz</span></div></div>
+        <div class="ig"><label>Tank Size</label>
+          <div class="iw"><input type="number" id="bTank" step="0.5" value="17" oninput="calcBoost()"><span class="suf">gal</span></div></div>
+        <div class="ig full"><label>Miles / Year</label>
+          <div class="iw"><input type="number" id="bMiles" step="500" value="12000" oninput="calcBoost()"></div></div>
+      </div>
+      <p class="note">💡 Example: VP Octanium 32oz needs ~13.6 oz to raise 17 gal of 91→93 (≈2.3 fill-ups per bottle). BOOSTane ~8 oz per tank.</p>
+    </div>
+  </div>
+
+  <div class="res-card" id="res-pump">
+    <div class="res-title">📊 Results — Pump Comparison</div>
+    <div class="rrow"><span class="rlbl">Cost/mile — Premium (93)</span><span class="rval" id="r_cpm93">—</span></div>
+    <div class="rrow"><span class="rlbl">Cost/mile — Midgrade (91)</span><span class="rval" id="r_cpm91">—</span></div>
+    <div class="rrow"><span class="rlbl">Cost/fill-up — Premium</span><span class="rval" id="r_fu93">—</span></div>
+    <div class="rrow"><span class="rlbl">Cost/fill-up — Midgrade</span><span class="rval" id="r_fu91">—</span></div>
+    <div class="rrow"><span class="rlbl">Annual cost — Premium</span><span class="rval" id="r_a93">—</span></div>
+    <div class="rrow"><span class="rlbl">Annual cost — Midgrade</span><span class="rval" id="r_a91">—</span></div>
+    <div class="chart-wrap">
+      <div class="ct">Annual Cost Comparison</div>
+      <div class="brow">
+        <div class="blr"><span class="blbl">Premium (93)</span><span class="bamt" id="bc93lbl">$0</span></div>
+        <div class="btrack"><div class="bfill p93" id="bc93" style="width:0%"></div></div>
+      </div>
+      <div class="brow">
+        <div class="blr"><span class="blbl">Midgrade (91)</span><span class="bamt" id="bc91lbl">$0</span></div>
+        <div class="btrack"><div class="bfill p91" id="bc91" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="gold">
+      <div class="gold-t">⭐ Golden Number — Your Per-Tank Price Gap</div>
+      <div class="gold-v" id="gn">—</div>
+      <div class="gold-d" id="gnd">Any booster must cost less than this per tank to save you money.</div>
+    </div>
+    <div class="verdict" id="pv">
+      <div class="v-icon" id="pvi">⚡</div>
+      <div class="v-txt" id="pvt">Calculating...</div>
+      <div class="v-sub" id="pvs"></div>
+    </div>
+  </div>
+
+  <div class="res-card" id="res-boost" style="display:none">
+    <div class="res-title">🧪 Results — Booster Route</div>
+    <div class="rrow"><span class="rlbl">Straight Premium / tank</span><span class="rval" id="br_str">—</span></div>
+    <div class="rrow"><span class="rlbl">Base fuel cost / tank</span><span class="rval" id="br_gas">—</span></div>
+    <div class="rrow"><span class="rlbl">Booster cost / tank</span><span class="rval" id="br_bst">—</span></div>
+    <div class="rrow"><span class="rlbl">Total (91 + booster) / tank</span><span class="rval" id="br_tot">—</span></div>
+    <div class="rrow"><span class="rlbl">Fill-ups per bottle</span><span class="rval" id="br_fpb">—</span></div>
+    <div class="rrow"><span class="rlbl">Annual cost — Straight Premium</span><span class="rval" id="br_ap">—</span></div>
+    <div class="rrow"><span class="rlbl">Annual cost — 91 + Booster</span><span class="rval" id="br_ab">—</span></div>
+    <div class="chart-wrap">
+      <div class="ct">Per-Tank Cost Comparison</div>
+      <div class="brow">
+        <div class="blr"><span class="blbl">Straight Premium</span><span class="bamt" id="bbc93lbl">$0</span></div>
+        <div class="btrack"><div class="bfill p93" id="bbc93" style="width:0%"></div></div>
+      </div>
+      <div class="brow">
+        <div class="blr"><span class="blbl">91 + Booster</span><span class="bamt" id="bbbstlbl">$0</span></div>
+        <div class="btrack"><div class="bfill boost" id="bbbst" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="gold">
+      <div class="gold-t">⭐ Breakeven — Max Booster Cost to Save Money</div>
+      <div class="gold-v" id="bgn">—</div>
+      <div class="gold-d" id="bgnd">—</div>
+    </div>
+    <div class="warnbox">
+      <div class="warnbox-t">⚠️ BMW / Luxury Vehicle MMT Warning</div>
+      <div class="warnbox-d">High-performance boosters use MMT (metallic additive). In BMW N55, N54, B58, and similar engines, daily use can foul O2 sensors ($300–400 ea.) and clog catalytic converters ($1,500–2,500+). One sensor failure erases ~1.5 years of savings. Use only for emergencies or track days.</div>
+    </div>
+    <div class="verdict" id="bv">
+      <div class="v-icon" id="bvi">⚡</div>
+      <div class="v-txt" id="bvt">Calculating...</div>
+      <div class="v-sub" id="bvs"></div>
+    </div>
+  </div>
+
+  <footer>Built for real pump decisions · Results are estimates — actual MPG & octane boost vary by vehicle and booster brand.</footer>
+</div>
+
+<script>
+let theme='light';
+function toggleTheme(){
+  theme=theme==='light'?'dark':'light';
+  document.documentElement.setAttribute('data-theme',theme==='dark'?'dark':'');
+  document.getElementById('themeBtn').textContent=theme==='dark'?'☀️ Light':'🌙 Dark';
+}
+function switchTab(name,el){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  document.getElementById('res-pump').style.display=name==='pump'?'block':'none';
+  document.getElementById('res-boost').style.display=name==='boost'?'block':'none';
+  if(name==='pump')calc();else calcBoost();
+}
+const f2=n=>'$'+n.toFixed(2);
+const f3=n=>'$'+n.toFixed(3);
+
+function calc(){
+  const p93=+document.getElementById('p93').value||0;
+  const p91=+document.getElementById('p91').value||0;
+  const mpg93=+document.getElementById('mpg93').value||1;
+  const mpg91=+document.getElementById('mpg91').value||1;
+  const mi=+document.getElementById('miles').value||0;
+  const tank=+document.getElementById('tank').value||17;
+  const cpm93=p93/mpg93,cpm91=p91/mpg91;
+  const ann93=cpm93*mi,ann91=cpm91*mi;
+  const fu93=p93*tank,fu91=p91*tank;
+  const diff=p93-p91,gn=diff*tank;
+  document.getElementById('r_cpm93').textContent=f3(cpm93);
+  document.getElementById('r_cpm91').textContent=f3(cpm91);
+  document.getElementById('r_fu93').textContent=f2(fu93);
+  document.getElementById('r_fu91').textContent=f2(fu91);
+  document.getElementById('r_a93').textContent=f2(ann93);
+  document.getElementById('r_a91').textContent=f2(ann91);
+  const mx=Math.max(ann93,ann91)||1;
+  document.getElementById('bc93').style.width=(ann93/mx*100)+'%';
+  document.getElementById('bc91').style.width=(ann91/mx*100)+'%';
+  document.getElementById('bc93lbl').textContent=f2(ann93);
+  document.getElementById('bc91lbl').textContent=f2(ann91);
+  document.getElementById('gn').textContent=f2(gn);
+  document.getElementById('gnd').textContent=`The ${(diff>=0?"+":"")+diff.toFixed(2)}/gal spread × ${tank} gal tank = ${f2(gn)} extra per fill-up for premium. Any booster must cost less than this to beat the pump.`;
+  const pv=document.getElementById('pv');
+  pv.className='verdict';
+  const sav=Math.abs(ann93-ann91);
+  if(ann91<ann93){
+    pv.classList.add('v-mid');
+    document.getElementById('pvi').textContent='✅';
+    document.getElementById('pvt').textContent=`Midgrade saves you ${f2(sav)}/year`;
+    document.getElementById('pvs').textContent=`Even with lower MPG, the pump price gap wins. Buy 91.`;
+  }else if(ann93<ann91){
+    pv.classList.add('v-prem');
+    document.getElementById('pvi').textContent='🏆';
+    document.getElementById('pvt').textContent=`Premium saves you ${f2(sav)}/year`;
+    document.getElementById('pvs').textContent=`The MPG gain on premium more than covers the price difference. Buy 93.`;
+  }else{
+    pv.classList.add('v-tie');
+    document.getElementById('pvi').textContent='🤝';
+    document.getElementById('pvt').textContent="Dead tie — run whatever you prefer";
+    document.getElementById('pvs').textContent='';
+  }
+}
+
+function calcBoost(){
+  const p93=+document.getElementById('bp93').value||0;
+  const p91=+document.getElementById('bp91').value||0;
+  const bCost=+document.getElementById('bCost').value||0;
+  const bOz=+document.getElementById('bOz').value||1;
+  const bOzTank=+document.getElementById('bOzTank').value||1;
+  const tank=+document.getElementById('bTank').value||17;
+  const mi=+document.getElementById('bMiles').value||12000;
+  const costPerOz=bCost/bOz;
+  const bPerTank=costPerOz*bOzTank;
+  const gasBase=p91*tank;
+  const total=gasBase+bPerTank;
+  const straight=p93*tank;
+  const fpb=bOz/bOzTank;
+  const gallonsPerYear=mi/20;
+  const tpy=gallonsPerYear/tank;
+  const annP=straight*tpy,annB=total*tpy;
+  const breakeven=(p93-p91)*tank;
+  document.getElementById('br_str').textContent=f2(straight);
+  document.getElementById('br_gas').textContent=f2(gasBase);
+  document.getElementById('br_bst').textContent=f2(bPerTank);
+  document.getElementById('br_tot').textContent=f2(total);
+  document.getElementById('br_fpb').textContent=fpb.toFixed(1)+' fill-ups';
+  document.getElementById('br_ap').textContent=f2(annP);
+  document.getElementById('br_ab').textContent=f2(annB);
+  const mx=Math.max(straight,total)||1;
+  document.getElementById('bbc93').style.width=(straight/mx*100)+'%';
+  document.getElementById('bbbst').style.width=(total/mx*100)+'%';
+  document.getElementById('bbc93lbl').textContent=f2(straight);
+  document.getElementById('bbbstlbl').textContent=f2(total);
+  document.getElementById('bgn').textContent=f2(breakeven);
+  document.getElementById('bgnd').textContent=`Booster must cost ≤ ${f2(breakeven)}/tank. You're currently paying ${f2(bPerTank)}/tank — ${bPerTank<=breakeven?"you're saving money! ✅":"not worth it at this price ❌"}`;
+  const bv=document.getElementById('bv');
+  bv.className='verdict';
+  const diff2=Math.abs(straight-total);
+  if(total<straight){
+    bv.classList.add('v-mid');
+    document.getElementById('bvi').textContent='✅';
+    document.getElementById('bvt').textContent=`Booster saves ${f2(diff2)}/tank`;
+    document.getElementById('bvs').textContent='91 + booster beats straight premium. Read the MMT warning first.';
+  }else{
+    bv.classList.add('v-prem');
+    document.getElementById('bvi').textContent='⛽';
+    document.getElementById('bvt').textContent=`Straight Premium is ${f2(diff2)}/tank cheaper`;
+    document.getElementById('bvs').textContent="Just grab the premium handle. The booster math doesn't work at these prices.";
+  }
+}
+
+calc();
+</script>
+</body>
+</html>

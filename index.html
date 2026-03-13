@@ -259,17 +259,17 @@ function calc(){
   const sav=Math.abs(ann93-ann91);
   if(ann91<ann93){
     pv.classList.add('v-mid');
-    document.getElementById('pvi').textContent='\u2705';
+    document.getElementById('pvi').textContent='✅';
     document.getElementById('pvt').textContent='Midgrade saves you '+f2(sav)+'/year';
     document.getElementById('pvs').textContent='Even with lower MPG, the pump price gap wins. Buy 91.';
   }else if(ann93<ann91){
     pv.classList.add('v-prem');
-    document.getElementById('pvi').textContent='\ud83c\udfc6';
+    document.getElementById('pvi').textContent='🏆';
     document.getElementById('pvt').textContent='Premium saves you '+f2(sav)+'/year';
     document.getElementById('pvs').textContent='The MPG gain on premium more than covers the price difference. Buy 93.';
   }else{
     pv.classList.add('v-tie');
-    document.getElementById('pvi').textContent='\ud83e\udd1d';
+    document.getElementById('pvi').textContent='🤝';
     document.getElementById('pvt').textContent='Dead tie -- run whatever you prefer';
     document.getElementById('pvs').textContent='';
   }
@@ -312,12 +312,12 @@ function calcBoost(){
   const diff2=Math.abs(straight-total);
   if(total<straight){
     bv.classList.add('v-mid');
-    document.getElementById('bvi').textContent='\u2705';
+    document.getElementById('bvi').textContent='✅';
     document.getElementById('bvt').textContent='Booster saves '+f2(diff2)+'/tank';
     document.getElementById('bvs').textContent='91 + booster beats straight premium. Read the MMT warning first.';
   }else{
     bv.classList.add('v-prem');
-    document.getElementById('bvi').textContent='\u26fd';
+    document.getElementById('bvi').textContent='⛽';
     document.getElementById('bvt').textContent='Straight Premium is '+f2(diff2)+'/tank cheaper';
     document.getElementById('bvs').textContent='Just grab the premium handle. The booster math does not work at these prices.';
   }
